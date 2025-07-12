@@ -1,26 +1,13 @@
-"""
-URL configuration for BackendSteamMagicHat project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-# from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from backend import views
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'steam_users', views.SteamUserViewSet, basename='steamuser')
+router.register(r'steam_games', views.SteamGameViewSet, basename='steamgame')
+router.register(r'owned_games', views.OwnedGameViewSet, basename='ownedgame')
 
 urlpatterns = [
-    # path('admin/', admin.site.urls),
-    path('api/steam_users/', views.SteamUserViewSet.as_view({'get': 'list', 'post': 'create'}), name='steam_user_list'),
-    path('api/steam_games/', views.SteamGameViewSet.as_view({'get': 'list', 'post': 'create'}), name='steam_game_list'),
-    path('api/owned_games/', views.OwnedGameViewSet.as_view({'get': 'list', 'post': 'create'}), name='owned_game_list'),
+    path('', include(router.urls)),
+    path('steam_games/shared', views.common_games_analysis, name='shared-games'),
 ]

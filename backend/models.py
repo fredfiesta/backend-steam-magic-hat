@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class SteamUser(models.Model):
-    steam_id = models.CharField(max_length=20, unique=True)
+    steam_id = models.CharField(max_length=20, unique=True, primary_key=True)
     username = models.CharField(max_length=100)
     profile_img_url = models.URLField()
 
@@ -10,7 +10,7 @@ class SteamUser(models.Model):
         return f"{self.username} (ID: {self.steam_id})"
 
 class SteamGame(models.Model):
-    app_id = models.IntegerField(unique=True)
+    app_id = models.IntegerField(unique=True, primary_key=True)
     name = models.CharField(max_length=200)
     app_img_url = models.URLField(blank=True, null=True)
 
