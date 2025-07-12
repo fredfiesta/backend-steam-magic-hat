@@ -14,7 +14,7 @@ A simple Django REST Framework API to track Steam users and their game libraries
 1. Clone the repo:
    ```bash
    git clone https://github.com/fredfiesta/backend-steam-magic-hat.git
-   cd steam-game-tracker
+   cd backend-steam-magic-hat
    ```
 
 2. Set up environment:
