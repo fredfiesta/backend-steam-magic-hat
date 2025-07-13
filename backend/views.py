@@ -1,9 +1,10 @@
 # Django core
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.db.models import Count
+from django.db import transaction
 # DRF core
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 # Collections
 from collections import defaultdict
@@ -23,9 +24,23 @@ class SteamUserViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, pk=None):
         user = get_object_or_404(SteamUser, pk=pk)
-        user.delete()
+        
+        # Get all games owned ONLY by this user
+        user_games = SteamGame.objects.filter(
+            owners__user=user
+        ).annotate(
+            owner_count=Count('owners')
+        ).filter(
+            owner_count=1
+        )
+        
+        # Delete user and their exclusive games
+        with transaction.atomic():
+            user.delete()
+            user_games.delete()
+            
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+        
 class SteamGameViewSet(viewsets.ModelViewSet):
     queryset = SteamGame.objects.all()
     serializer_class = SteamGameSerializer
