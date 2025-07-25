@@ -11,6 +11,10 @@ from collections import defaultdict
 # Local imports
 from .models import SteamUser, SteamGame, OwnedGame
 from .serializers import SteamUserSerializer, SteamGameSerializer, OwnedGameSerializer
+from django.http import HttpResponse
+
+def landing_page(request):
+    return HttpResponse("Welcome to Steam Magic Hat API")
 
 class SteamUserViewSet(viewsets.ModelViewSet):
     queryset = SteamUser.objects.all()
@@ -63,7 +67,10 @@ class OwnedGameViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def common_games_analysis(request):
-    """Returns all games shared between any users, sorted by popularity"""
+    """Returns games shared between users, with optional min_shared_count filter"""
+    # Get min_shared_count from query params (default=2)
+    min_shared = int(request.query_params.get('min_shared_count', 2))
+    
     # Single query to get all user-game relationships
     user_games = (
         SteamUser.objects
@@ -81,7 +88,13 @@ def common_games_analysis(request):
                 'username': user.username
             })
 
-    # Get games shared by at least 2 users
+    # Filter games by shared count threshold
+    filtered_game_ids = [
+        gid for gid, users in game_index.items() 
+        if len(users) >= min_shared  # Changed from >1 to >= min_shared
+    ]
+    
+    # Get game details in bulk
     shared_games = [
         {
             'game': {
@@ -92,11 +105,16 @@ def common_games_analysis(request):
             'shared_by': game_index[game.app_id],
             'shared_count': len(game_index[game.app_id])
         }
-        for game in SteamGame.objects.filter(app_id__in=[
-            gid for gid, users in game_index.items() if len(users) > 1
-        ])
+        for game in SteamGame.objects.filter(app_id__in=filtered_game_ids)
     ]
     
+    # Sort by shared_count descending
+    sorted_games = sorted(shared_games, key=lambda x: -x['shared_count'])
+    
     return Response({
-        'results': sorted(shared_games, key=lambda x: -x['shared_count'])
+        'results': sorted_games,
+        'meta': {
+            'min_shared_count': min_shared,
+            'total_games': len(sorted_games)
+        }
     })

@@ -8,6 +8,7 @@ router.register(r'steam_games', views.SteamGameViewSet, basename='steamgame')
 router.register(r'owned_games', views.OwnedGameViewSet, basename='ownedgame')
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('steam_games/shared', views.common_games_analysis, name='shared-games'),
+    path('', views.landing_page, name='landing'),
+    path('api/', include(router.urls)),
+    path('api/steam_games/shared', views.common_games_analysis, name='shared-games'),
 ]
